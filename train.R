@@ -24,117 +24,47 @@ library(epidemiar)
 
 library(clusterapply)
 
-## Locally-defined Functions
-#source("helper_scripts/data_corrals.R") #do not think I need this, only for data preparation which should already be done 
-#source("helper_scripts/report_save_create_helpers.R") #probably not needed either
-
 #due to experimental dplyr::summarise() parameter
 options(dplyr.summarise.inform=F)
 
-# 2. Reading in the Data -----------------------------------------------------
-
-# read in woreda metadata
-report_woredas <- read_csv("data/amhara_woredas.csv") %>% 
-  filter(report == 1)
-# report_woredas <- readxl::read_xlsx("data/woredas.xlsx", na = "NA") %>% 
-#   dplyr::filter(report == 1)
-#Note: report woredas must have sufficient epi data, env data, and model cluster information, in appropriate files
-
-# read & process case data needed for report
-epi_data <- corral_epidemiological(report_woreda_names = report_woredas$woreda_name)
-
-# read & process environmental data for woredas in report
-env_data <- corral_environment(report_woredas = report_woredas)
-
-## Optional: For slight speed increase, 
-# date filtering to remove older environmental data.
-# older env data was included to demo epidemiar::env_daily_to_ref() function.
-#week is always end of the week, 7th day
-env_start_date <- epidemiar::make_date_yw(year = 2012, week = 1, weekday = 7) 
-env_data <- env_data %>%
-  filter(obs_date >= env_start_date)
-
-# read in climatology / environmental reference data
-env_ref_data <- readr::read_csv("data/env_ref_data_2002_2018.csv", col_types = readr::cols())
-
-# read in environmental info file
-env_info <- read_xlsx("data/environ_info.xlsx", na = "NA")
-
-# read in forecasting and report settings file
-source("data/epidemiar_settings_demo.R")
-
-# 3. Run epidemia & create model only ---------------------------------------
-
-#UPDATE model run to TRUE
-pfm_report_settings$model_run <- TRUE
-pv_report_settings$model_run <- TRUE
-
-#Run with check on current epidemiology and environmental data sets
-
-if (exists("epi_data") & exists("env_data")){
+train_chap <- function(model_fn, epi_fn, env_fn, env_ref_fn, env_info_fn){
+  source("settings.R")
+  setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn, env_info_fn)
   
-  # P. falciparum & mixed
-  message("Running P. falciparum & mixed")
-  pfm_model <- run_epidemia(
+  rep_set <- setting_and_data_list$rep_set
+  #rep_set$fc_future_period <- weeks_to_forecast
+  #rep_set$report_period <- weeks_to_forecast + 1
+  
+  message("Training model with epidemia")
+  model <- run_epidemia(
     #data
-    epi_data = epi_data, 
-    env_data = env_data, 
-    env_ref_data = env_ref_data, 
-    env_info = env_info,
+    epi_data = setting_and_data_list$epi, 
+    env_data = setting_and_data_list$env, 
+    env_ref_data = setting_and_data_list$env_ref, 
+    env_info = setting_and_data_list$env_info,
     #fields
-    casefield = test_pf_tot, 
-    groupfield = woreda_name, 
-    populationfield = pop_at_risk,
+    casefield = disease_cases, 
+    groupfield = location, 
+    populationfield = population,
     obsfield = environ_var_code, 
     valuefield = obs_value,
     #required settings
-    fc_model_family = fc_model_family,
+    fc_model_family = "gaussian()",
     #other settings
-    report_settings = pfm_report_settings)
+    report_settings = rep_set)
   
-  # P. vivax
-  message("Running P. vivax")
-  pv_model <- run_epidemia(
-    #data
-    epi_data = epi_data, 
-    env_data = env_data, 
-    env_ref_data = env_ref_data, 
-    env_info = env_info,
-    #fields
-    casefield = test_pv_only, 
-    groupfield = woreda_name, 
-    populationfield = pop_at_risk,
-    obsfield = environ_var_code, 
-    valuefield = obs_value,
-    #required settings
-    fc_model_family = fc_model_family,
-    #other settings
-    report_settings = pv_report_settings)
-  
-} else {
-  message("Error: Epidemiological and/or environmental datasets are missing.
-          Check Section 2 for data error messages.")
+  saveRDS(model, file = "output/model.bin")
 }
 
-# model object:
-# $model_obj is regression object
-# $model_info is a log of parameters and data ranges used to generate model
+args <- commandArgs(trailingOnly = TRUE)
 
-# 3.5 Accessing the predicted data --------------------------------
+if (length(args) == 5) {
+  model_fn <- args[1]
+  epi_fn <- args[2]
+  env_fn <- args[3]
+  env_ref_fn <- args[4]
+  env_info_fn <- args[5]
+  
+  train_chap(model_fn, epi_fn, env_fn, env_ref_fn, env_info_fn)
+}
 
-df <- pfm_reportdata$modeling_results_data #the object returned from running falicurm and mixed
-df_forcast <- filter(df, series == "fc") #gets only the forecasted values, not all thresholds and alerts and such
-
-
-# 4. Save models for later use ---------------------------------------------
-
-# add last epidemiological known data date, and today's date to file name
-save_filetail <- paste0("_", isoyear(max(epi_data$obs_date)), 
-                        "W", isoweek(max(epi_data$obs_date)),
-                        "_", format(Sys.Date(), "%Y%m%d"))
-pfm_name <- paste0("pfm_model", save_filetail, ".RDS")
-pv_name <- paste0("pv_model", save_filetail, ".RDS")
-
-#save to /data
-saveRDS(pfm_model, file.path("data/models", pfm_name))
-saveRDS(pv_model, file.path("data/models", pv_name))

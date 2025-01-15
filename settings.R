@@ -8,17 +8,21 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
     df <- read.csv(epi_fn) |>
       mutate(obs_date = as.Date(yearmonth(time_period)))
     
-    df <- read.csv("C:/Users/Halvard/Documents/GitHub/Madagascar_ARIMA/input/training_data.csv") |>
-      mutate(obs_date = as.Date(yearmonth(time_period)))
+    #df <- read.csv("C:/Users/Halvard/Documents/GitHub/Madagascar_ARIMA/input/training_data.csv") |>
+     # mutate(obs_date = as.Date(yearmonth(time_period)))
     
     #assume these are always present in CHAP data
     epi_data <- df[, c("obs_date", "disease_cases", "population", "location")]
     epi_data <- filter(epi_data, obs_date > (min(obs_date) + years(1)))
+    #removes the first year of epi_data because the model needs earlier env_data to fill in lags.
     
     env_data_wrong_format <- select(df, -disease_cases, -population, -time_period)
     
     env_data <- pivot_longer(env_data_wrong_format, cols = c(rainfall, mean_temperature),
                              names_to = "environ_var_code", values_to = "obs_value")
+    #env_data <- epidemiar::data_to_daily(env_data, obs_value, interpolate = TRUE)
+    #not advisable for that many missing timepoints, also failed because the format is weird
+    
     env_var <- as_tibble(data.frame(environ_var_code = c("rainfall", "mean_temperature")))
     
     #need reference enviromental data and environment info

@@ -4,7 +4,6 @@
 #make sure pacman is installed
 if (!require("pacman")) install.packages("pacman")
 
-#load packages
 pacman::p_load(dplyr,
                knitr,
                lubridate,
@@ -15,7 +14,6 @@ pacman::p_load(dplyr,
                tinytex,
                tools)
 
-#installing epidemiar
 #remotes::install_github("ecograph/epidemiar@v3.1.1", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
 library(epidemiar)
 
@@ -29,10 +27,6 @@ options(dplyr.summarise.inform=F)
 train_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn){
   source("settings.R")
   setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn, env_info_fn)
-  
-  rep_set <- setting_and_data_list$rep_set
-  #rep_set$fc_future_period <- weeks_to_forecast
-  #rep_set$report_period <- weeks_to_forecast + 1
   
   cat("Training model with epidemia")
   model <- run_epidemia(
@@ -50,7 +44,7 @@ train_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn){
     #required settings
     fc_model_family = "gaussian()",
     #other settings
-    report_settings = rep_set)
+    report_settings = setting_and_data_list$rep_set)
   
   saveRDS(model, file = "output/model.bin")
 }

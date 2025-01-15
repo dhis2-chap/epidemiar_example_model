@@ -46,7 +46,7 @@ Cannot even get it to work with the current data in CHAP. I believe it fails bec
 * The predicted cases are on a weakly basis, is this an issue? I believe CHAP prefers monthly data for cases. 
 
 
-# Explaing what I have done
+# Explaing what I have done (need weekly epi data and daily env data)
 
 ## settings.R 
 This script defines the function settings() which is called in both train_chap() and predict_chap(). It loads and processes the data 
@@ -56,7 +56,9 @@ adhere to the data format epidemiar requires. The data are split into epidemolog
 either from a file or created from the enviromental data, and some files with metadata for the enviromental features used in info and env_var. 
 Then assign all the unique locations/woredas to unique clusters in the fc_clusters, this could posibbly be given as an argument so similar 
 locations can loan strength from eachother. However, it is not trivial to decide which locations to cluster toghether. For now, they are 
-all independent of eachother.
+all independent of eachother. Also, when enviromental and epidemological data start at the same date the model fails because the enviromental 
+lags are unobtainable. Therefore, I remove the first year of epidemological data when using CHAP formats. This also depends on 
+env_lag_lengths defined below.
 
 Now follows an explanation of the defined settings. 
 report_period <- 25 is not used in train, but needs to be present, and is later overwritten by the argument weeks_to_forcast in predict.
@@ -71,5 +73,15 @@ training, not sure how it classifies anomalies or if this really matters a lot. 
 whether to include cyclical effects or not. fc_future_period is overwritten when used in predict. fc_ncores is puraly for parallell computations. 
 ed_method <- none disable early detection and ed_summary_period determines the number of weeks used. A few of these settings are not used 
 at all, but they are defined to avoid warings when running the scripts.
+
+## train.R 
+It calls all neccessary libraries, some installed form github urls and with devtools. This might be an issue for the docker enviroment, unsure. 
+Then we define train_chap() which calls settings() and then creates the model with the function run_epidemia(). Then the returned 
+model object is saved for later use.
+
+## predict.R 
+Here we again call the libraries and then define predict_chap(). Now we call settings() again beofre changing some of the settings which differ 
+between training and predicting. After running run_epidemia(), which now forecasts for the furture, we access the forecasted values. 
+Should ideally be able to sample values from 
 
 

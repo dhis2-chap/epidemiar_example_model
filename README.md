@@ -82,6 +82,6 @@ model object is saved for later use.
 ## predict.R 
 Here we again call the libraries and then define predict_chap(). Now we call settings() again beofre changing some of the settings which differ 
 between training and predicting. After running run_epidemia(), which now forecasts for the furture, we access the forecasted values. 
-Should ideally be able to sample values from 
+Should ideally be able to sample values from the predicted distribuition. 
 
 

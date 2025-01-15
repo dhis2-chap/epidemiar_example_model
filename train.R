@@ -21,7 +21,6 @@ library(epidemiar)
 
 # install.packages("devtools")
 #devtools::install_github("EcoGRAPH/clusterapply")
-
 library(clusterapply)
 
 #due to experimental dplyr::summarise() parameter
@@ -35,7 +34,7 @@ train_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn){
   #rep_set$fc_future_period <- weeks_to_forecast
   #rep_set$report_period <- weeks_to_forecast + 1
   
-  message("Training model with epidemia")
+  cat("Training model with epidemia")
   model <- run_epidemia(
     #data
     epi_data = setting_and_data_list$epi, 

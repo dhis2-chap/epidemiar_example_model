@@ -27,7 +27,7 @@ library(clusterapply)
 #due to experimental dplyr::summarise() parameter
 options(dplyr.summarise.inform=F)
 
-train_chap <- function(model_fn, epi_fn, env_fn, env_ref_fn, env_info_fn){
+train_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn){
   source("settings.R")
   setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn, env_info_fn)
   
@@ -59,12 +59,12 @@ train_chap <- function(model_fn, epi_fn, env_fn, env_ref_fn, env_info_fn){
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) == 5) {
-  model_fn <- args[1]
-  epi_fn <- args[2]
-  env_fn <- args[3]
-  env_ref_fn <- args[4]
-  env_info_fn <- args[5]
+  epi_fn <- args[1]
+  env_fn <- args[2]
+  env_ref_fn <- args[3]
+  env_info_fn <- args[4]
+  model_fn <- args[5]
   
-  train_chap(model_fn, epi_fn, env_fn, env_ref_fn, env_info_fn)
+  train_chap(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn)
 }
 

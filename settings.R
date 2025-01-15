@@ -8,8 +8,8 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
     df <- read.csv(epi_fn) |>
       mutate(obs_date = as.Date(time_period))
     
-    df <- read.csv("C:/Users/Halvard/Documents/GitHub/Madagascar_ARIMA/input/training_data.csv") |>
-      mutate(obs_date = as.Date(yearmonth(time_period)))
+    #df <- read.csv("C:/Users/Halvard/Documents/GitHub/Madagascar_ARIMA/input/training_data.csv") |>
+     # mutate(obs_date = as.Date(yearmonth(time_period)))
     
     #assume these are always present in CHAP data
     epi_data <- df[, c("obs_date", "disease_cases", "population", "location")]
@@ -24,9 +24,10 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
     
     #enviroment info
     # read in CHAP environmental info file, only works for rainfall and mean_temperature
-    env_info <- read_xlsx("input/env_info_CHAP.csv", na = "NA") 
+    env_info <- read_xlsx("input/env_info_CHAP.xlsx", na = "NA") 
     
-    ref_data <- epidemiar::env_daily_to_ref(env_data, env_info = env_info) 
+    ref_data <- epidemiar::env_daily_to_ref(env_data, location, environ_var_code, obs_value,
+                                             "ISO", env_info = env_info) 
     
   } else{
     # read & process case data
@@ -53,10 +54,10 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
   report_period <- 25
   
   #report out in incidence 
-  report_value_type <- "incidence"
+  report_value_type <- "cases"
   
   #report incidence rates per 1000 people
-  report_inc_per <- 1000
+  #report_inc_per <- 1000
   
   #date type in epidemiological data
   epi_date_type <- "weekISO"
@@ -112,7 +113,7 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
   #Combine the settings to a single object
   pfm_report_settings <- epidemiar::create_named_list(report_period,
                                                       report_value_type,
-                                                      report_inc_per,
+                                                      #report_inc_per,
                                                       epi_date_type,
                                                       epi_interpolate,
                                                       epi_transform,

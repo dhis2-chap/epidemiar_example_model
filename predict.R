@@ -8,7 +8,7 @@
 # i long format, og ikke vanlig df med features som kolonner.
 #kanskje enklest å kun ha CHAP navn på starten og slutten, og epidemia navn i mellom
 
-predict_chap <- function(model_fn, epi_fn, env_fn, env_ref_fn, env_info_fn, predictions_fn, weeks_to_forecast) {
+predict_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, predictions_fn, weeks_to_forecast) {
   source("settings.R")
   setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn, env_info_fn)
   
@@ -43,21 +43,25 @@ predict_chap <- function(model_fn, epi_fn, env_fn, env_ref_fn, env_info_fn, pred
   df_forcast <- filter(df, series == "fc") #gets only the forecasted values, not all thresholds and alerts and such
   colnames(df_forcast)[c(2, 4)] <- c("time_period", "sample_0") #change colnames for chap formatting
   
-  write.csv(df_forcast[2:nrow(df_forcast),], file = predictions_fn)
+  if(env_fn == ""){
+    predictions_fn <- "input/predictions_CHAP.csv"
+  }
+  
+  write.csv(df_forcast[2:nrow(df_forcast),], file = predictions_fn) #assumes the first row is already known for report_period and future_weeks
 }
 
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) == 7) {
-  model_fn <- args[1]
-  epi_fn <- args[2]
-  env_fn <- args[3]
-  env_ref_fn <- args[4]
-  env_info_fn <- args[5]
+  epi_fn <- args[1]
+  env_fn <- args[2]
+  env_ref_fn <- args[3]
+  env_info_fn <- args[4]
+  model_fn <- args[5]
   predictions_fn <- args[6]
   weeks_to_forecast <- args[7]
   
-  predict_chap(model_fn, epi_fn, env_fn, env_ref_fn, env_info_fn, predictions_fn, weeks_to_forecast)
+  predict_chap(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, predictions_fn, weeks_to_forecast)
 }
 
 

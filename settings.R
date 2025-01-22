@@ -8,7 +8,7 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
     df <- read.csv(epi_fn) |>
       mutate(obs_date = as.Date(time_period)) #need yearmonth() if given monthly data, but fails later either way
     #might not need the above for weekly data, could just make time_period to date objects 
-    
+    #hei
     #assume these are always present in CHAP data
     epi_data <- df[, c("obs_date", "disease_cases", "population", "location")]
     epi_data <- filter(epi_data, obs_date > (min(obs_date) + years(1)))

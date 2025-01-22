@@ -90,23 +90,41 @@ other possible covariates covariates from ERA5. These could also be integrated i
 rain and mean_temperature are included both with CHAP names and with ERA5 names. mean and sum determines how to aggregate the daily 
 enviromental data to the weekly scale. report_label is purely used for formatting the report from epidemia and is not relevant for our 
 framework, but I believe it fails if it is not supplied.
-```csv
-environ_var_code,	reference_method,	report_label
-rainfall,	sum,	Rain (mm)
-mean_temperature,	mean,	LST (°C)
-totprec,	sum,	Rain (mm)
-lst_day,	mean,	LST (°C)
-lst_mean,	mean,	LST (°C)
-lst_night,	mean,	LST (°C)
-ndvi,	mean,	NDVI
-savi,	mean,	SAVI
-evi,	mean,	EVI
-ndwi5,	mean,	NDWI5
-ndwi6,	mean,	NDWI6
-```
+
+|environ_var_code|	reference_method|	report_label|
+|-----------------|:----------------:|--------:|
+|rainfall|	sum|	Rain (mm)|
+|mean_temperature|	mean|	LST (°C)|
+|totprec|	sum|	Rain (mm)|
+|lst_day|	mean|	LST (°C)|
+|lst_mean|	mean|	LST (°C)|
+|lst_night|	mean|	LST (°C)|
+|ndvi|	mean|	NDVI|
+|savi|	mean|	SAVI|
+|evi|	mean|	EVI|
+|ndwi5|	mean|	NDWI5|
+|ndwi6|	mean|	NDWI6|
+
 
 ## requirements.txt
 This txt file lists all the required packages and creates an enviroment with the necessary packages through a docker. As some of the packages 
 need more custom installation than the standard "install.packages" I believe this won't work yet. This also interactes with the MLporject file.
 
+
+Colons can be used to align columns.
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
+There must be at least 3 dashes separating each header cell.
+The outer pipes (|) are optional, and you don't need to make the 
+raw Markdown line up prettily. You can also use inline Markdown.
+
+Markdown | Less | Pretty
+--- | --- | ---
+*Still* | `renders` | **nicely**
+1 | 2 | 3
 

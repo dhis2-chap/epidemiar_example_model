@@ -32,9 +32,13 @@ library(clusterapply)
 #due to experimental dplyr::summarise() parameter
 options(dplyr.summarise.inform=F)
 
-predict_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, predictions_fn, weeks_to_forecast) {
+predict_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, predictions_fn, future_fn) {
   source("settings.R")
   setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn, env_info_fn)
+  
+  df_future <- read.csv(future_fn) #this data is not used by the model at all, it simply indicates how many weeks to forecast
+  weeks_to_forecast <- nrow(filter(df_future, location == unique(df_future[, "location"])[1]))
+  #the above assumes we want to predict the same number of weeks for every region
   
   #changes to report settings from train, now uses a saved model and assigns a number of weeks
   rep_set <- setting_and_data_list$rep_set
@@ -66,12 +70,17 @@ predict_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, pred
   df <- model$modeling_results_data 
   df_forcast <- filter(df, series == "fc") #gets only the forecasted values, not all thresholds and alerts and such
   colnames(df_forcast)[c(2, 4)] <- c("time_period", "sample_0") #change colnames for chap formatting
+
+  #if(env_fn == ""){
+  #  predictions_fn <- "input/predictions_CHAP.csv"
+  #}
   
-  if(env_fn == ""){
-    predictions_fn <- "input/predictions_CHAP.csv"
-  }
+  #get the latest known epi date and only keep predictions after this point
+  epi_data <- setting_and_data_list$epi
+  latest_date_epi_data <- max(epi_data[["time_period"]])
+  df_forcast <- filter(df_forcast, time_period > latest_date_epi_data)
   
-  write.csv(df_forcast[2:nrow(df_forcast),], file = predictions_fn) #assumes the first row is already known for report_period and future_weeks
+  write.csv(df_forcast, file = predictions_fn)
 }
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -83,11 +92,9 @@ if (length(args) == 7) {
   env_info_fn <- args[4]
   model_fn <- args[5]
   predictions_fn <- args[6]
-  weeks_to_forecast <- args[7]
+  future_fn <- args[7]
   
-  predict_chap(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, predictions_fn, weeks_to_forecast)
-}
-
-
-
-
+  predict_chap(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, predictions_fn, future_fn)
+} #else{
+  #print("Wrong number of trailing arguments, it is supposed to be 7.")
+#}

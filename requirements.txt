@@ -1,2 +1,13 @@
 dplyr
 epidemiar
+clusterapply
+knitr
+lubridate
+parallel
+readr
+readxl
+tidyr
+tinytex
+tools
+pacman
+tsibble

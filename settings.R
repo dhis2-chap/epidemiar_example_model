@@ -4,12 +4,10 @@ library(tsibble)
 
 settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
   # 1. Reading in the Data -----------------------------------------------------
-  if(env_fn == ""){
+  if(env_fn == ""){ #data from CHAP
     df <- read.csv(epi_fn) |>
-      mutate(obs_date = as.Date(yearmonth(time_period)))
-    
-    #df <- read.csv("C:/Users/Halvard/Documents/GitHub/Madagascar_ARIMA/input/training_data.csv") |>
-     # mutate(obs_date = as.Date(yearmonth(time_period)))
+      mutate(obs_date = as.Date(time_period)) #need yearmonth() if given monthly data, but fails later either way
+    #might not need the above for weekly data, could just make time_period to date objects 
     
     #assume these are always present in CHAP data
     epi_data <- df[, c("obs_date", "disease_cases", "population", "location")]
@@ -29,11 +27,11 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
     
     #enviroment info
     # read in CHAP environmental info file, only works for rainfall and mean_temperature
-    env_info <- read_xlsx("input/env_info_CHAP.xlsx", na = "NA") 
+    env_info <- read_xlsx(env_info_fn, na = "NA") 
     
     env_ref_data <- epidemiar::env_daily_to_ref(env_data, location, environ_var_code, obs_value,
                                              "ISO", env_info = env_info) 
-  } else{
+  } else{ #the example data supplied by epidemiar
     # read & process case data
     epi_data <- read.csv(epi_fn) |>
       mutate(obs_date = as.Date(time_period))

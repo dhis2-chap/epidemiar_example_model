@@ -1,13 +1,12 @@
 # epidemiar
+For now there are some chaotic notes first here, the more structured README starts from the section "Explaing what I have done".
 
 ## Potential issues
 * It requires weekly data, both for case count and enviromental data, maybe even daily for enviromental
-* Data must be supplied seperately, should be fine
+* Data must be supplied seperately as they have different resolutions, should be fine. Could also have them in the same, but will create some data wrangling issues.
 * Not sure if the docker image can install epidemiar, custom install comand
 * Also not sure if we can have training data and historic data differ as it assumes future data starts imidieatly after training, I think.
-* Also seems like epidemiar estimates the future climate data internally, not sure if it can be supplied from the user. If so, it could be challenging to compare the model performance with other methods as they use different future data. (maybe okay?)
-* I think they use cases per 1000, and not just total cases per region. They also use the population I believe, and account for population increase for predictions. Can choose incidence or cases in this argument report_settings$report_value_type, was unable to do it, works now.
-* Also, seems like they model two types of malaria?not sure if that is a problem. I believe they make different models for each of them as they prefer different eniviroments and one is more deadly than the other. 
+* Also seems like epidemiar estimates the future climate data internally, not sure if it can be supplied from the user. 
 
 ## Data format
 Mean or sum is the method used to get weakly data from daily data, some are additive while some are averages. Report_lable is purely used as a plotting label.
@@ -18,13 +17,6 @@ For enviromental data (env_info df) they use: (environ_var_code is a shortening 
 * Soil adjusted vegetation index(SAVI), maybe this is used?
 * Enviromental vunrability index(EVI), to predict the above in the future maybe?
 * Also use NDWI5 and NDWI6, Normalized difference water index Anomlaies
-
-I think the files vivax_model_ennvars and falciparum_model_envvars define which enviromental variable should be included. Which are read here
-```
-pfm_env_var <- readr::read_csv("data/falciparum_model_envvars.csv", col_types = readr::cols())
-pv_env_var <- readr::read_csv("data/vivax_model_envvars.csv", col_types = readr::cols())
-```
-into variables in the epidemiar_settings_demo.R file and then later loaded when the settings file is loaded. Not sure if it passed to the function or if run_epidemia knows where to use it simply by its naming convention.
 
 I have saved the enviromental and epidemological data for two regions/woredas, including the reference enviromental data, used for forecasting.
 Also made the cluster index, with one in each cluster.
@@ -61,17 +53,17 @@ lags are unobtainable. Therefore, I remove the first year of epidemological data
 env_lag_lengths defined below.
 
 Now follows an explanation of the defined settings. 
-report_period <- 25 is not used in train, but needs to be present, and is later overwritten by the argument weeks_to_forcast in predict.
-report_value_type can be cases or incidence, we are using cases.
-epi_date_type chooses the standard ISO weeks and epi_interpolate <- simply enables interpolating for missing epidemological data.
-epi_transform <- log_plus_one transform the data and is adviced when using fc_model_family <- gaussian(), which should probably be given 
-as an input argument to the scripts. Can choose and family supported by the mgcv library. 
-model_run <- TRUE ends the function call after training the model, this is changed in predict to make the forecasts from the model cached in train  
-by model_cached <- NULL, which is given a model object in predict.  
-env_lag_lengths <- 181 fixes the max number of lagged days to use, can be adjusted. env_anomalies <- TRUE allows anomalies to be used in 
-training, not sure how it classifies anomalies or if this really matters a lot. fc_splines chooses which splines to use and fc_cyclicals chooses 
-whether to include cyclical effects or not. fc_future_period is overwritten when used in predict. fc_ncores is puraly for parallell computations. 
-ed_method <- none disable early detection and ed_summary_period determines the number of weeks used. A few of these settings are not used 
+"report_period <- 25" is not used in train, but needs to be present, and is later overwritten by the length of the first region in the future dataframe in predict.
+"report_value_type" can be cases or incidence, we are using cases.
+"epi_date_type" chooses the standard ISO weeks and "epi_interpolate" simply enables interpolating for missing epidemological data.
+"epi_transform <- log_plus_one" transforms the data and is advised when using "fc_model_family <- gaussian()", which should probably be given 
+as an input argument to the scripts. Can choose any family supported by the mgcv library. 
+"model_run <- TRUE" ends the function call after training the model, this is changed in predict to make the forecasts from the model cached in train  
+by "model_cached <-  readRDS(model_fn)".
+"env_lag_lengths <- 181" fixes the max number of lagged days to use, can be adjusted. "env_anomalies <- TRUE" allows anomalies to be used in 
+training, not sure how it classifies anomalies or if this really matters a lot. "fc_splines" chooses which splines to use and "fc_cyclicals" chooses 
+whether to include cyclical effects or not. "fc_future_period" is overwritten when used in predict. "fc_ncores" is purely for parallell computations. 
+"ed_method <- none" disable early detection and "ed_summary_period" determines the number of weeks used. A few of these settings are not used 
 at all, but they are defined to avoid warings when running the scripts.
 
 ## train.R 
@@ -80,8 +72,41 @@ Then we define train_chap() which calls settings() and then creates the model wi
 model object is saved for later use.
 
 ## predict.R 
-Here we again call the libraries and then define predict_chap(). Now we call settings() again beofre changing some of the settings which differ 
+Here we again call the libraries and then define predict_chap(). Now we call settings() again before changing some of the settings which differ 
 between training and predicting. After running run_epidemia(), which now forecasts for the furture, we access the forecasted values. 
-Should ideally be able to sample values from the predicted distribuition. 
+We extract the number of weeks to forecast from the length of the future data, but this data is not actually used to predict, as epidemia 
+predicts the future climate on its own. The model returns various types of output for the predicted dates, but we only keep the sepcific 
+forecasts and call them "sample_0". The rest, including some lower and upper boundaries for some unknown quantiles, are discarded. Then, for 
+each location it also includes the last known timepoint, so we filter this out and write the predictions to a csv.  
+We should ideally be able to sample values from the predicted distribuition, if it is possible within the framework I have not seen it.
+
+## isolated_run.R 
+Here we can run tests locally with the data supplied in the epidemiar demo and also with CHAP data, which currently fails as both 
+epidemilogical and enviromental data is monthly, and not weekly and daily respectively. 
+
+## env.info.xlsx
+This file contains meta data for the enviromental variables used. The first two variables are the ones used by CHAP while the rest are 
+other possible covariates covariates from ERA5. These could also be integrated into CHAP. Note that there is some overlap below, as both 
+rain and mean_temperature are included both with CHAP names and with ERA5 names. mean and sum determines how to aggregate the daily 
+enviromental data to the weekly scale. report_label is purely used for formatting the report from epidemia and is not relevant for our 
+framework, but I believe it fails if it is not supplied.
+```csv
+environ_var_code,	reference_method,	report_label
+rainfall,	sum,	Rain (mm)
+mean_temperature,	mean,	LST (°C)
+totprec,	sum,	Rain (mm)
+lst_day,	mean,	LST (°C)
+lst_mean,	mean,	LST (°C)
+lst_night,	mean,	LST (°C)
+ndvi,	mean,	NDVI
+savi,	mean,	SAVI
+evi,	mean,	EVI
+ndwi5,	mean,	NDWI5
+ndwi6,	mean,	NDWI6
+```
+
+## requirements.txt
+This txt file lists all the required packages and creates an enviroment with the necessary packages through a docker. As some of the packages 
+need more custom installation than the standard "install.packages" I believe this won't work yet. This also interactes with the MLporject file.
 
 

@@ -2,31 +2,59 @@
 library(lubridate)
 library(tsibble)
 
+library(dplyr)
+library(tidyr)
+
+#testing
+# epi_fn <- "input/small_laos_data_with_polygons.csv"
+# 
+# env_data_daily <-group_by(env_data_wrong_format, location) 
+# env_data_daily <- complete(env_data_daily, time_period = seq(min(time_period) - 6, max(time_period), by = "day"))
+# 
+#   fill(value, .direction = "up") |>  # Fill the weekly value into daily rows
+#   ungroup()
+
+
 settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
   # 1. Reading in the Data -----------------------------------------------------
   if(env_fn == ""){ #data from CHAP
     df <- read.csv(epi_fn) |>
-      mutate(obs_date = as.Date(time_period)) #need yearmonth() if given monthly data, but fails later either way
-    #might not need the above for weekly data, could just make time_period to date objects 
-    #hei
+      mutate(obs_date = as.Date(time_period)) |> #need yearmonth() if given monthly data, but fails later either way
+      mutate(location = as.character(location)) #only needed when location is not already a character
+    
     #assume these are always present in CHAP data
     epi_data <- df[, c("obs_date", "disease_cases", "population", "location")]
     epi_data <- filter(epi_data, obs_date > (min(obs_date) + years(1)))
     #removes the first year of epi_data because the model needs earlier env_data to fill in lags.
+    #could also make it dependent on max lag, currently 181 days
     
-    env_data_wrong_format <- select(df, -disease_cases, -population, -time_period)
+    env_data_wrong_format <- df[, c("obs_date", "location", 
+                                    "rainfall", "mean_temperature") ]
+    #I will now assume the date we have is the last of the week
     
-    env_data <- pivot_longer(env_data_wrong_format, cols = c(rainfall, mean_temperature),
-                             names_to = "environ_var_code", values_to = "obs_value")
+    env_data_daily <- env_data_wrong_format|>
+      group_by(location) |>
+      complete(obs_date = seq(min(obs_date) - 6, max(obs_date), by = "day")) |>  # Expand to daily
+      fill(rainfall, .direction = "up") |>
+      fill(mean_temperature, .direction = "up") |>
+      fill(location, .direction = "up") |>
+      ungroup()
+    #For now, only fills rainfall, mean_temperature and location
+    
+    env_data_daily <- distinct(env_data_daily, obs_date, .keep_all = TRUE) 
+    
+    
+    env_data <- pivot_longer(env_data_daily, cols = c(rainfall, mean_temperature),
+                    names_to = "environ_var_code", values_to = "obs_value") |>
+      arrange(environ_var_code)
     #env_data <- epidemiar::data_to_daily(env_data, obs_value, interpolate = TRUE)
-    #not advisable for that many missing timepoints, also failed because the format is weird
     
     env_var <- as_tibble(data.frame(environ_var_code = c("rainfall", "mean_temperature")))
     
     #need reference enviromental data and environment info
     
     #enviroment info
-    # read in CHAP environmental info file, only works for rainfall and mean_temperature
+    # read in info file, works for all data from ERA5
     env_info <- read_xlsx(env_info_fn, na = "NA") 
     
     env_ref_data <- epidemiar::env_daily_to_ref(env_data, location, environ_var_code, obs_value,

@@ -11,4 +11,20 @@ predict_chap("input/Ab_epi_data.csv", "input/Ab_env_data.csv", "input/Ab_ref_env
 train_chap("input/training_data.csv", "", "", "input/env_info.xlsx", "output/model.bin")
 predict_chap("input/training_data.csv", "", "", "input/env_info.xlsx", "output/model.bin", "output/predictions_CHAP.csv", "input/future_data.csv")
 
+#testing with weekly CHAP data from Laos
+train_chap("input/small_laos_data_with_polygons.csv", "", "", "input/env_info.xlsx", "output/model.bin")
+predict_chap("input/small_laos_data_with_polygons.csv", "", "", "input/env_info.xlsx", "output/model.bin", "output/predictions_CHAP_Laos.csv", "input/future_data.csv")
+
+#NOTE: it seems the locations must be characters!!
+
+#data wrangling
+# 
+df <- read.csv("input/small_laos_data_with_polygons.csv")[-1]
+# 
+# #install.packages("ISOweek")
+# library(ISOweek)
+# 
+# df <- mutate(df, time_period = ISOweek2date(paste0(df$year, "-W", sprintf("%02d", df$week), "-7")))
+# 
+# write.csv(df, file = "input/small_laos_data_with_polygons.csv")
 

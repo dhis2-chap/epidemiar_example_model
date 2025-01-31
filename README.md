@@ -26,16 +26,13 @@ Also made the cluster index, with one in each cluster.
 It seems like they are using a generalized additive model(GAM) which is an extension of the generalized linear models(GLM). Has a smooth relationship between covariates and the parameter in question. 
 
 ## So far, what works
-The model now runs with the data from the demo example, and with column names aligned with CHAP conventions for non-enviromental data. For the enviromental data they use some long format, so will need to preprocess the data from CHAP to fit the format, as well as some info files regarding names and sum/mean and that determines which enviromeental features to use in the model, or just make the dataframes in the settings.R file. Can now specify how many weeks to predict for as an argument in the predict call. isolated_run.R runs fine, and train and predict work as intended.
+The model now runs with the data from the demo example, and with column names aligned with CHAP conventions for non-enviromental data. For the enviromental data they use some long format, so will need to preprocess the data from CHAP to fit the format, as well as some info files regarding names and sum/mean and that determines which enviromeental features to use in the model, or just make the dataframes in the settings.R file. Can now specify how many weeks to predict for as an argument in the predict call, this is done through the length of the future data provided by CHAP to make it align with other models in CHAP. isolated_run.R runs fine, and train and predict work as intended.
 
-We might have to create the reference data from the supplied data, believe it was a funciton for that. For now, I believe the data in CHAP is monthly, which makes the model interpolate for the remaining days of the month, not ideal.
-Cannot even get it to work with the current data in CHAP. I believe it fails because it needs daily enviromental data, which I do not give it yet.
+For weekly CHAP data the model also works. We first convert the weekly enviroment data to daily, which eipdemiar then uses to create the same weekly data as well as some reference data, which is used for future enviromental predictons. There was some data wrangling needed to adhere to the dataformat, and it seems epidemia needs the location columns to be characters, or whatever column we group the data by.
 
 ## Questions
-* If we give it weakly epidemological data and daily enviromental data, should they be in different datasets? I think so
 * The model is very flexible in terms of covariates and clusterings and so on, should this be given as argument vectors for instance?
-* Currently give the number of weeks to forecast instead of future data, as it predicts it on its own, is that okay?
-* The predicted cases are on a weakly basis, is this an issue? I believe CHAP prefers monthly data for cases. 
+* Currently give the number of weeks to forecast instead of future data, as it predicts it on its own, is that okay? 
 
 
 # Explaing what I have done (need weekly epi data and daily env data)
@@ -86,7 +83,7 @@ epidemilogical and enviromental data is monthly, and not weekly and daily respec
 
 ## env.info.xlsx
 This file contains meta data for the enviromental variables used. The first two variables are the ones used by CHAP while the rest are 
-other possible covariates covariates from ERA5. These could also be integrated into CHAP. Note that there is some overlap below, as both 
+other possible covariates from ERA5. These could also be integrated into CHAP. Note that there is some overlap below, as both 
 rain and mean_temperature are included both with CHAP names and with ERA5 names. mean and sum determines how to aggregate the daily 
 enviromental data to the weekly scale. report_label is purely used for formatting the report from epidemia and is not relevant for our 
 framework, but I believe it fails if it is not supplied.
@@ -104,7 +101,7 @@ framework, but I believe it fails if it is not supplied.
 |evi|	mean|	EVI|
 |ndwi5|	mean|	NDWI5|
 |ndwi6|	mean|	NDWI6|
-
+Note that all the reference methods are now set to mean, because we assume we are given weekly data from CHAP.
 
 ## requirements.txt
 This txt file lists all the required packages and creates an enviroment with the necessary packages through a docker. As some of the packages 

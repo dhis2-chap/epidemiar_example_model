@@ -8,11 +8,11 @@ entry_points:
     parameters:
       train_data: path
       model: str
-    command: "Rscript train.R {train_data} {model}"
+    command: "Rscript train.R {epi_fn} {env_fn} {env_ref_fn} {env_info_fn} {model_fn}"
   predict:
     parameters:
       historic_data: path
       future_data: path
       model: str
       out_file: path
-    command: "Rscript predict.R {model} {historic_data} {future_data} {out_file}"
+    command: "Rscript predict.R {epi_fn} {env_fn} {env_ref_fn} {env_info_fn} {model_fn} {predictions_fn} {future_fn}"

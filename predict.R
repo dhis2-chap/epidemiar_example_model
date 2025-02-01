@@ -77,7 +77,7 @@ predict_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, pred
   
   #get the latest known epi date and only keep predictions after this point
   epi_data <- setting_and_data_list$epi
-  latest_date_epi_data <- max(epi_data[["time_period"]])
+  latest_date_epi_data <- max(epi_data[["obs_date"]])
   df_forcast <- filter(df_forcast, time_period > latest_date_epi_data)
   
   write.csv(df_forcast, file = predictions_fn)

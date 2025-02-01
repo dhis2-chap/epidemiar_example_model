@@ -6,7 +6,8 @@ library(dplyr)
 library(tidyr)
 
 #testing
-# epi_fn <- "input/small_laos_data_with_polygons.csv"
+ epi_fn <- "input/small_laos_data_with_polygons.csv"
+ env_info_fn <- "input/env_info.xlsx"
 # 
 # env_data_daily <-group_by(env_data_wrong_format, location) 
 # env_data_daily <- complete(env_data_daily, time_period = seq(min(time_period) - 6, max(time_period), by = "day"))
@@ -32,13 +33,16 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
                                     "rainfall", "mean_temperature") ]
     #I will now assume the date we have is the last of the week
     
+    #not sure if the below works for grouped data, but maybe?
     env_data_daily <- env_data_wrong_format|>
       group_by(location) |>
       complete(obs_date = seq(min(obs_date) - 6, max(obs_date), by = "day")) |>  # Expand to daily
-      fill(rainfall, .direction = "up") |>
-      fill(mean_temperature, .direction = "up") |>
-      fill(location, .direction = "up") |>
+      fill(everything(), .direction = "up") |>
       ungroup()
+      #fill(rainfall, .direction = "up") |>
+      #fill(mean_temperature, .direction = "up") |>
+      #fill(location, .direction = "up") |>
+      #ungroup()
     #For now, only fills rainfall, mean_temperature and location
     
     env_data_daily <- distinct(env_data_daily, obs_date, .keep_all = TRUE) 
@@ -140,7 +144,7 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
   ed_summary_period <- 0
   
   #Combine the settings to a single object
-  pfm_report_settings <- epidemiar::create_named_list(report_period,
+  report_settings <- epidemiar::create_named_list(report_period,
                                                       report_value_type,
                                                       epi_date_type,
                                                       epi_interpolate,
@@ -158,5 +162,5 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
                                                       ed_summary_period)
   
   
-  return(list(epi = epi_data, env = env_data, env_ref = env_ref_data, env_info = env_info, rep_set = pfm_report_settings ))
+  return(list(epi = epi_data, env = env_data, env_ref = env_ref_data, env_info = env_info, rep_set = report_settings ))
 }

@@ -35,7 +35,7 @@ For weekly CHAP data the model also works. We first convert the weekly enviromen
 * Currently give the number of weeks to forecast instead of future data, as it predicts it on its own, is that okay? 
 
 
-# Explaing what I have done (need weekly epi data and daily env data)
+# Explaing what I have done 
 
 ## settings.R 
 This script defines the function settings() which is called in both train_chap() and predict_chap(). It loads and processes the data 
@@ -62,6 +62,8 @@ training, not sure how it classifies anomalies or if this really matters a lot. 
 whether to include cyclical effects or not. "fc_future_period" is overwritten when used in predict. "fc_ncores" is purely for parallell computations. 
 "ed_method <- none" disable early detection and "ed_summary_period" determines the number of weeks used. A few of these settings are not used 
 at all, but they are defined to avoid warings when running the scripts.
+
+There are some specifics about data formats worth noting. Firstly, epidemiar needs the time column named to be "obs_date" internally, while we in CHAP use "time_period". Thus, both obs_date and time_period is used as time columns at different places and for different objects. Secondly, the grouping field for locations as assigned manually, we have choosen "location" to align with the conventions in CHAP. Furthermore, epidemiar fails if the elements in this column are not characters. Because of this we convert the elements in this column to characters as they might be integers for some datasets.
 
 ## train.R 
 It calls all neccessary libraries, some installed form github urls and with devtools. This might be an issue for the docker enviroment, unsure. 
@@ -90,9 +92,9 @@ framework, but I believe it fails if it is not supplied.
 
 |environ_var_code|	reference_method|	report_label|
 |-----------------|:----------------:|--------:|
-|rainfall|	sum|	Rain (mm)|
+|rainfall|	mean|	Rain (mm)|
 |mean_temperature|	mean|	LST (°C)|
-|totprec|	sum|	Rain (mm)|
+|totprec|	mean|	Rain (mm)|
 |lst_day|	mean|	LST (°C)|
 |lst_mean|	mean|	LST (°C)|
 |lst_night|	mean|	LST (°C)|
@@ -101,10 +103,13 @@ framework, but I believe it fails if it is not supplied.
 |evi|	mean|	EVI|
 |ndwi5|	mean|	NDWI5|
 |ndwi6|	mean|	NDWI6|
+
 Note that all the reference methods are now set to mean, because we assume we are given weekly data from CHAP.
 
-## requirements.txt
-This txt file lists all the required packages and creates an enviroment with the necessary packages through a docker. As some of the packages 
-need more custom installation than the standard "install.packages" I believe this won't work yet. This also interactes with the MLporject file.
+## The data 
+We assume we are given weekly data from CHAP, both for epidemological and enviromental. As epidemiar expects daily enviromental data, we naivly expand the weekly data to daily data by coping all values upwards in an expanded dataframe grouped by location. This essentially means that the one value per week is assigned to each daily value, and when epidemiar aggregates to weekly data by the method mean we are back to the weekly data we started with. The created daily data is also used to create the enviromental referance data, which is used to forecast future enviromental data used in the predictions.
+
+## Docker
+We use a docker to handle the libraries, this is not completed yet.
 
 

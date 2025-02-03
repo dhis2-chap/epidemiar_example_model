@@ -6,8 +6,8 @@ library(dplyr)
 library(tidyr)
 
 #testing
- epi_fn <- "input/small_laos_data_with_polygons.csv"
- env_info_fn <- "input/env_info.xlsx"
+#epi_fn <- "input/small_laos_data_with_polygons.csv"
+#env_info_fn <- "input/env_info.xlsx"
 # 
 # env_data_daily <-group_by(env_data_wrong_format, location) 
 # env_data_daily <- complete(env_data_daily, time_period = seq(min(time_period) - 6, max(time_period), by = "day"))
@@ -16,12 +16,19 @@ library(tidyr)
 #   ungroup()
 
 
-settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
+settings <- function(epi_fn, env_fn, env_ref_fn){
   # 1. Reading in the Data -----------------------------------------------------
   if(env_fn == ""){ #data from CHAP
+    #list of all covariates that can be used, names shortened from ERA5
+    covariate_list <- c("rainfall", "mean_temperature", "totprec", "lst_day", 
+                        "lst_mean", "lst_night", "ndvi", "savi", "evi",
+                        "ndwi5", "ndwi6")
+    
     df <- read.csv(epi_fn) |>
       mutate(obs_date = as.Date(time_period)) |> #need yearmonth() if given monthly data, but fails later either way
       mutate(location = as.character(location)) #only needed when location is not already a character
+    
+    used_covariates <- intersect(covariate_list, colnames(df))
     
     #assume these are always present in CHAP data
     epi_data <- df[, c("obs_date", "disease_cases", "population", "location")]
@@ -30,7 +37,7 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
     #could also make it dependent on max lag, currently 181 days
     
     env_data_wrong_format <- df[, c("obs_date", "location", 
-                                    "rainfall", "mean_temperature") ]
+                                    used_covariates) ]
     #I will now assume the date we have is the last of the week
     
     #not sure if the below works for grouped data, but maybe?
@@ -45,22 +52,25 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
       #ungroup()
     #For now, only fills rainfall, mean_temperature and location
     
-    env_data_daily <- distinct(env_data_daily, obs_date, .keep_all = TRUE) 
+    #env_data_daily <- distinct(env_data_daily, obs_date, .keep_all = TRUE) 
     
     
-    env_data <- pivot_longer(env_data_daily, cols = c(rainfall, mean_temperature),
+    #env_data <- pivot_longer(env_data_daily, cols = c(rainfall, mean_temperature),
+    env_data <- pivot_longer(env_data_daily, cols = all_of(used_covariates),
                     names_to = "environ_var_code", values_to = "obs_value") |>
       arrange(environ_var_code)
     #env_data <- epidemiar::data_to_daily(env_data, obs_value, interpolate = TRUE)
     
-    env_var <- as_tibble(data.frame(environ_var_code = c("rainfall", "mean_temperature")))
+    env_var <- as_tibble(data.frame(environ_var_code = used_covariates))
     
     #need reference enviromental data and environment info
     
     #enviroment info
-    # read in info file, works for all data from ERA5
-    env_info <- read_xlsx(env_info_fn, na = "NA") 
-    
+    # works for all data from ERA5, just creates a dataframe for meta information
+    env_info <- data.frame(environ_var_code = covariate_list, 
+                          reference_method = rep("mean", length(covariate_list)), 
+                          report_label = rep("X", length(covariate_list))) 
+
     env_ref_data <- epidemiar::env_daily_to_ref(env_data, location, environ_var_code, obs_value,
                                              "ISO", env_info = env_info) 
   } else{ #the example data supplied by epidemiar
@@ -76,8 +86,16 @@ settings <- function(epi_fn, env_fn, env_ref_fn, env_info_fn){
     env_ref_data <- read.csv(env_ref_fn)
     
     # read in environmental info file
-    env_info <- read_xlsx(env_info_fn, na = "NA")
+    #env_info <- read_xlsx(env_info_fn, na = "NA")
     
+    covariate_list <- c("rainfall", "mean_temperature", "totprec", "lst_day", 
+                        "lst_mean", "lst_night", "ndvi", "savi", "evi",
+                        "ndwi5", "ndwi6")
+    
+    env_info <- data.frame(environ_var_code = covariate_list, 
+                           reference_method = rep("mean", length(covariate_list)), 
+                           report_label = rep("X", length(covariate_list)))
+
     env_var <- as_tibble(data.frame(environ_var_code = c("totprec", "lst_day", "ndwi6")))
   }
   

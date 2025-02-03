@@ -1,18 +1,19 @@
 
 name: epidemiar
 
-r_env: requirements.txt
+#r_env: ghcr.io/dhis2-chap/docker_for_epidemia
+r_env: docker_for_epidemia
 
 entry_points:
   train:
     parameters:
       train_data: path
       model: str
-    command: "Rscript train.R {epi_fn} {env_fn} {env_ref_fn} {env_info_fn} {model_fn}"
+    command: "Rscript train.R {epi_fn} {env_fn} {env_ref_fn} {model_fn}"
   predict:
     parameters:
       historic_data: path
       future_data: path
       model: str
       out_file: path
-    command: "Rscript predict.R {epi_fn} {env_fn} {env_ref_fn} {env_info_fn} {model_fn} {predictions_fn} {future_fn}"
+    command: "Rscript predict.R {epi_fn} {env_fn} {env_ref_fn} {model_fn} {predictions_fn} {future_fn}"

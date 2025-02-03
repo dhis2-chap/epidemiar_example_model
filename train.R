@@ -1,18 +1,11 @@
 
 # 1. Libraries & Functions ------------------------------------------------------
+library(dplyr)
+library(lubridate)
+library(parallel)
+library(readxl)
+library(tidyr)
 
-#make sure pacman is installed
-if (!require("pacman")) install.packages("pacman")
-
-pacman::p_load(dplyr,
-               knitr,
-               lubridate,
-               parallel,
-               readr, 
-               readxl,
-               tidyr,
-               tinytex,
-               tools)
 
 #remotes::install_github("ecograph/epidemiar@v3.1.1", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
 library(epidemiar)
@@ -24,9 +17,9 @@ library(clusterapply)
 #due to experimental dplyr::summarise() parameter
 options(dplyr.summarise.inform=F)
 
-train_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn){
+train_chap <- function(epi_fn, env_fn, env_ref_fn, model_fn){
   source("settings.R")
-  setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn, env_info_fn)
+  setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn)
   
   cat("Training model with epidemia")
   model <- run_epidemia(
@@ -51,13 +44,12 @@ train_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn){
 
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) == 5) {
+if (length(args) == 4) {
   epi_fn <- args[1]
   env_fn <- args[2]
   env_ref_fn <- args[3]
-  env_info_fn <- args[4]
-  model_fn <- args[5]
+  model_fn <- args[4]
   
-  train_chap(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn)
+  train_chap(epi_fn, env_fn, env_ref_fn, model_fn)
 }
 

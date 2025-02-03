@@ -8,19 +8,11 @@
 # i long format, og ikke vanlig df med features som kolonner.
 #kanskje enklest å kun ha CHAP navn på starten og slutten, og epidemia navn i mellom
 
-
-#make sure pacman is installed
-if (!require("pacman")) install.packages("pacman")
-
-pacman::p_load(dplyr,
-               knitr,
-               lubridate,
-               parallel,
-               readr, 
-               readxl,
-               tidyr,
-               tinytex,
-               tools)
+library(dplyr)
+library(lubridate)
+library(parallel)
+library(readxl)
+library(tidyr)
 
 #remotes::install_github("ecograph/epidemiar@v3.1.1", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
 library(epidemiar)
@@ -32,9 +24,9 @@ library(clusterapply)
 #due to experimental dplyr::summarise() parameter
 options(dplyr.summarise.inform=F)
 
-predict_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, predictions_fn, future_fn) {
+predict_chap <- function(epi_fn, env_fn, env_ref_fn, model_fn, predictions_fn, future_fn) {
   source("settings.R")
-  setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn, env_info_fn)
+  setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn)
   
   df_future <- read.csv(future_fn) #this data is not used by the model at all, it simply indicates how many weeks to forecast
   weeks_to_forecast <- nrow(filter(df_future, location == unique(df_future[, "location"])[1]))
@@ -85,16 +77,15 @@ predict_chap <- function(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, pred
 
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) == 7) {
+if (length(args) == 6) {
   epi_fn <- args[1]
   env_fn <- args[2]
   env_ref_fn <- args[3]
-  env_info_fn <- args[4]
-  model_fn <- args[5]
-  predictions_fn <- args[6]
-  future_fn <- args[7]
+  model_fn <- args[4]
+  predictions_fn <- args[5]
+  future_fn <- args[6]
   
-  predict_chap(epi_fn, env_fn, env_ref_fn, env_info_fn, model_fn, predictions_fn, future_fn)
+  predict_chap(epi_fn, env_fn, env_ref_fn, model_fn, predictions_fn, future_fn)
 } #else{
   #print("Wrong number of trailing arguments, it is supposed to be 7.")
 #}

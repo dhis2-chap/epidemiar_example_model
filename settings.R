@@ -6,6 +6,7 @@ library(dplyr)
 library(tidyr)
 
 #testing
+#epi_fn <- "input/laos_test_data.csv"
 #epi_fn <- "input/small_laos_data_with_polygons.csv"
 #env_info_fn <- "input/env_info.xlsx"
 # 
@@ -27,7 +28,7 @@ settings <- function(epi_fn){
                       "ndwi5", "ndwi6")
   
   df <- read.csv(epi_fn) |>
-    mutate(time_period = sapply(strsplit(time_period, "/"), `[`, 2))
+    mutate(time_period = sapply(strsplit(time_period, "/"), `[`, 2)) |>
     mutate(obs_date = as.Date(time_period)) |> 
     mutate(location = as.character(location)) #only needed when location is not already a character
   

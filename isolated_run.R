@@ -12,8 +12,8 @@ source("predict.R")
 # predict_chap("input/training_data.csv", "", "", "output/model.bin", "output/predictions_CHAP.csv", "input/future_data.csv")
 
 #testing with weekly CHAP data from Laos
-train_chap("input/small_laos_data_with_polygons.csv", "", "", "output/model.bin")
-predict_chap("input/small_laos_data_with_polygons.csv", "", "", "output/model.bin", "output/predictions_CHAP_Laos.csv", "input/future_data.csv")
+train_chap("input/laos_test_data.csv", "output/model.bin")
+predict_chap("output/model.bin", "input/laos_test_data.csv", "input/future_data.csv", "output/predictions_CHAP_Laos.csv")
 
 #NOTE: it seems the locations must be characters!!
 

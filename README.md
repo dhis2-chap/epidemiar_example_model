@@ -63,7 +63,7 @@ whether to include cyclical effects or not. "fc_future_period" is overwritten wh
 "ed_method <- none" disable early detection and "ed_summary_period" determines the number of weeks used. A few of these settings are not used 
 at all, but they are defined to avoid warings when running the scripts.
 
-There are some specifics about data formats worth noting. Firstly, epidemiar needs the time column named to be "obs_date" internally, while we in CHAP use "time_period". Thus, both obs_date and time_period is used as time columns at different places and for different objects. Secondly, the grouping field for locations as assigned manually, we have choosen "location" to align with the conventions in CHAP. Furthermore, epidemiar fails if the elements in this column are not characters. Because of this we convert the elements in this column to characters as they might be integers for some datasets.
+There are some specifics about data formats worth noting. Firstly, epidemiar needs the time column name to be "obs_date" internally, while we in CHAP use "time_period". Thus, both obs_date and time_period is used as time columns at different places and for different objects. Secondly, the grouping field for locations is assigned manually, we have choosen "location" to align with the conventions in CHAP. Furthermore, epidemiar fails if the elements in this column are not characters. Because of this we convert the elements in this column to characters as they might be integers for some datasets.
 
 ## train.R 
 It calls all neccessary libraries, some installed form github urls and with devtools. This might be an issue for the docker enviroment, unsure. 
@@ -107,9 +107,12 @@ framework, but I believe it fails if it is not supplied.
 Note that all the reference methods are now set to mean, because we assume we are given weekly data from CHAP.
 
 ## The data 
-We assume we are given weekly data from CHAP, both for epidemological and enviromental. As epidemiar expects daily enviromental data, we naivly expand the weekly data to daily data by coping all values upwards in an expanded dataframe grouped by location. This essentially means that the one value per week is assigned to each daily value, and when epidemiar aggregates to weekly data by the method mean we are back to the weekly data we started with. The created daily data is also used to create the enviromental referance data, which is used to forecast future enviromental data used in the predictions.
+We assume we are given weekly data from CHAP, both for epidemological and enviromental. As epidemiar expects daily enviromental data, we naivly expand the weekly data to daily data by coping all values upwards in an expanded dataframe grouped by location. This essentially means that the one value per week is assigned to each daily value, and when epidemiar aggregates to weekly data by the method mean we are back to the weekly data we started with. The created daily data is also used to create the enviromental referance data, which is used to forecast future enviromental data used in the predictions. We also assume the time_period column in the datasets are on the format 2020-01-03/2020-01-09, so the first and last day of the given week.
+
+## MLproject
+In the R code you can use whatever names you want in the functions. Howevere, as the commands in the MLproject file are run with elemnts internally in CHAP the naming conventions in the MLproject file is rather strict, and should be changed from the supplied train_data, model and so on. This goes for both train and predict. The only feature that should be changed in the MLproject is the image in the docker enviroment, which is created below.
 
 ## Docker
-We use a docker to handle the libraries, this is not completed yet.
+The docker is based on the repository docker_r_template, and for a more detailed explanantion use that. The specific docker image used for this model is created in the repository docker_for_epidemiar, and basically assigns a name and installs the required libraries for running the R code in a virtual docker image. For a more detailed description see docker_for_epidemia.
 
 

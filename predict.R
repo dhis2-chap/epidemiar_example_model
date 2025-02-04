@@ -24,9 +24,9 @@ library(clusterapply)
 #due to experimental dplyr::summarise() parameter
 options(dplyr.summarise.inform=F)
 
-predict_chap <- function(epi_fn, env_fn, env_ref_fn, model_fn, predictions_fn, future_fn) {
+predict_chap <- function(model_fn, epi_fn, future_fn, predictions_fn) {
   source("settings.R")
-  setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn)
+  setting_and_data_list <- settings(epi_fn)
   
   df_future <- read.csv(future_fn) #this data is not used by the model at all, it simply indicates how many weeks to forecast
   weeks_to_forecast <- nrow(filter(df_future, location == unique(df_future[, "location"])[1]))
@@ -38,8 +38,7 @@ predict_chap <- function(epi_fn, env_fn, env_ref_fn, model_fn, predictions_fn, f
   rep_set$fc_future_period <- weeks_to_forecast
   rep_set$report_period <- weeks_to_forecast + 1
   rep_set$model_run <- FALSE
-    
-  message("Running forecasts with epidemia")
+  
   model <- run_epidemia(
     #data
     epi_data = setting_and_data_list$epi, 
@@ -62,10 +61,6 @@ predict_chap <- function(epi_fn, env_fn, env_ref_fn, model_fn, predictions_fn, f
   df <- model$modeling_results_data 
   df_forcast <- filter(df, series == "fc") #gets only the forecasted values, not all thresholds and alerts and such
   colnames(df_forcast)[c(2, 4)] <- c("time_period", "sample_0") #change colnames for chap formatting
-
-  #if(env_fn == ""){
-  #  predictions_fn <- "input/predictions_CHAP.csv"
-  #}
   
   #get the latest known epi date and only keep predictions after this point
   epi_data <- setting_and_data_list$epi
@@ -78,14 +73,12 @@ predict_chap <- function(epi_fn, env_fn, env_ref_fn, model_fn, predictions_fn, f
 args <- commandArgs(trailingOnly = TRUE)
 
 if (length(args) == 6) {
-  epi_fn <- args[1]
-  env_fn <- args[2]
-  env_ref_fn <- args[3]
-  model_fn <- args[4]
-  predictions_fn <- args[5]
-  future_fn <- args[6]
+  model_fn <- args[1]
+  epi_fn <- args[2]
+  future_fn <- args[3]
+  predictions_fn <- args[4]
   
-  predict_chap(epi_fn, env_fn, env_ref_fn, model_fn, predictions_fn, future_fn)
+  predict_chap(model_fn, epi_fn, future_fn, predictions_fn)
 } #else{
   #print("Wrong number of trailing arguments, it is supposed to be 7.")
 #}

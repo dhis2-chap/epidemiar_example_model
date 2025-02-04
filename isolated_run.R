@@ -29,10 +29,12 @@ predict_chap("input/small_laos_data_with_polygons.csv", "", "", "output/model.bi
 # 
 #write.csv(df, file = "input/small_laos_data_with_polygons.csv", row.names = FALSE )
 
-df <- read.csv("input/laos_test_data.csv")
+# df <- read.csv("input/laos_test_data.csv")
+# 
+# library(dplyr)
+# df <- mutate(df,time_period = sapply(strsplit(time_period, "/"), `[`, 2))
+# 
 
-library(dplyr)
-df <- mutate(df,time_period = sapply(strsplit(time_period, "/"), `[`, 2))
 
 
 

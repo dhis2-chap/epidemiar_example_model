@@ -6,7 +6,6 @@ library(parallel)
 library(readxl)
 library(tidyr)
 
-
 #remotes::install_github("ecograph/epidemiar@v3.1.1", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
 library(epidemiar)
 
@@ -17,11 +16,10 @@ library(clusterapply)
 #due to experimental dplyr::summarise() parameter
 options(dplyr.summarise.inform=F)
 
-train_chap <- function(epi_fn, env_fn, env_ref_fn, model_fn){
+train_chap <- function(epi_fn, model_fn){
   source("settings.R")
-  setting_and_data_list <- settings(epi_fn, env_fn, env_ref_fn)
+  setting_and_data_list <- settings(epi_fn)
   
-  cat("Training model with epidemia")
   model <- run_epidemia(
     #data
     epi_data = setting_and_data_list$epi, 
@@ -39,17 +37,15 @@ train_chap <- function(epi_fn, env_fn, env_ref_fn, model_fn){
     #other settings
     report_settings = setting_and_data_list$rep_set)
   
-  saveRDS(model, file = "output/model.bin")
+  saveRDS(model, file = model_fn)
 }
 
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) == 4) {
+if (length(args) == 2) {
   epi_fn <- args[1]
-  env_fn <- args[2]
-  env_ref_fn <- args[3]
-  model_fn <- args[4]
+  model_fn <- args[2]
   
-  train_chap(epi_fn, env_fn, env_ref_fn, model_fn)
+  train_chap(epi_fn, model_fn)
 }
 

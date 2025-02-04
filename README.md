@@ -43,8 +43,7 @@ each location it also includes the last known timepoint, so we filter this out a
 We should ideally be able to sample values from the predicted distribuition, if it is possible within the framework I have not seen it.
 
 ## isolated_run.R 
-Here we can run tests locally with the data supplied in the epidemiar demo and also with CHAP data, which currently fails as both 
-epidemilogical and enviromental data is monthly, and not weekly and daily respectively. 
+Here we can run tests locally with the data supplied in the epidemiar demo and also with CHAP data. In the final version the functions only support the data format from CHAP, but the code for both situations are included in settings.R commented out below the used code. This file is purely for local testing, and is not used by CHAP at all.
 
 ## env.info
 This file contains meta data for the enviromental variables used. The first two variables are the ones used by CHAP while the rest are 

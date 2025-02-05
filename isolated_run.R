@@ -35,7 +35,10 @@ predict_chap("output/model.bin", "input/laos_test_data.csv", "input/future_data.
 # df <- mutate(df,time_period = sapply(strsplit(time_period, "/"), `[`, 2))
 # 
 
-
+# df <- read.csv("output/predictions_CHAP_laos.csv")
+# df <- mutate(df, time_period = as.Date(time_period))
+# df <-mutate(df, start_date = time_period - days(6),
+#     time_period = paste0(start_date, "/", time_period))
 
 
 

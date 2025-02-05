@@ -7,6 +7,7 @@
 #må kanskje gjøre noe med environ_var_code og obs_value med fieldsene, er liksom
 # i long format, og ikke vanlig df med features som kolonner.
 #kanskje enklest å kun ha CHAP navn på starten og slutten, og epidemia navn i mellom
+
 options(warn=1)
 
 library(dplyr)
@@ -68,7 +69,12 @@ predict_chap <- function(model_fn, epi_fn, future_fn, predictions_fn) {
   latest_date_epi_data <- max(epi_data[["obs_date"]])
   df_forcast <- filter(df_forcast, time_period > latest_date_epi_data)
   
-  write.csv(df_forcast, file = predictions_fn)
+  #make time_period into the weekly date format required in CHAP
+  df_forcast <-mutate(df_forcast, start_date = time_period - days(6),
+              time_period = paste0(start_date, "/", time_period))
+  df_forcast <- select(df_forcast, -start_date)
+  
+  write.csv(df_forcast, file = predictions_fn, row.names = F)
 }
 
 args <- commandArgs(trailingOnly = TRUE)

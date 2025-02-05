@@ -7,6 +7,7 @@
 #må kanskje gjøre noe med environ_var_code og obs_value med fieldsene, er liksom
 # i long format, og ikke vanlig df med features som kolonner.
 #kanskje enklest å kun ha CHAP navn på starten og slutten, og epidemia navn i mellom
+options(warn=1)
 
 library(dplyr)
 library(lubridate)
@@ -72,7 +73,7 @@ predict_chap <- function(model_fn, epi_fn, future_fn, predictions_fn) {
 
 args <- commandArgs(trailingOnly = TRUE)
 
-if (length(args) == 6) {
+if (length(args) == 4) {
   model_fn <- args[1]
   epi_fn <- args[2]
   future_fn <- args[3]
@@ -80,5 +81,5 @@ if (length(args) == 6) {
   
   predict_chap(model_fn, epi_fn, future_fn, predictions_fn)
 } #else{
-  #print("Wrong number of trailing arguments, it is supposed to be 7.")
+  #print("Wrong number of trailing arguments, it is supposed to be 4.")
 #}

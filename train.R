@@ -1,3 +1,4 @@
+options(warn=1)
 
 # 1. Libraries & Functions ------------------------------------------------------
 library(dplyr)

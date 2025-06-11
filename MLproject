@@ -1,6 +1,33 @@
 
 name: epidemiar
 
+target: disease_cases
+required_covariates: 
+  - population
+  - precipitation
+  - temperature
+supported_period_type: any
+allow_free_additional_continuous_covariates: false
+
+meta_data: 
+  display_name: Epidemiar
+  description: >
+    Epidemiar is a Generalizes additive model (GAM) used for climate health forecasts. 
+    It requires weekly epidemilogical data, like disease cases and population, and daily enviromental data. 
+  author: Halvard Emil Sand-Larsen
+  author_note: > 
+    As most of the data in CHAP is monthly or weekly we pass weakly data to the model, and then naively expand weekly data to daily data, 
+    which the epidemiar library again aggregates back to weekly data. The model produces a sample for each location per time point with 
+    upper and lower boundary for some unknown quantiles. 
+  author_assessed_status: red
+  organization: HISP Centre, University of Oslo
+  organization_logo_url: https://landportal.org/sites/default/files/2024-03/university_of_oslo_logo.png
+  contact_email: knut.rand@dhis2.org
+  citation_info: >
+    Climate Health Analytics Platform. 2025. "Epidemiar model".
+    HISP Centre, University of Oslo.
+    https://dhis2-chap.github.io/chap-core/external_models/overview_of_supported_models.html
+
 docker_env: 
   image: ghcr.io/dhis2-chap/docker_for_epidemia:master
 
